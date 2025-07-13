@@ -9,7 +9,7 @@ export async function generateEmail(context: string, prompt: string) {
     const stream = createStreamableValue<string>("");
     (async () => {
       const { textStream } = await streamText({
-        model: openai("gpt-3.5-turbo"),
+        model: openai("gpt"),
         prompt: ` You are an AI email assistant embedded in an email client app. Your purpose is to help the user compose emails by providing suggestions and relevant information based on the context of their previous emails.
             
             THE TIME NOW IS ${new Date().toLocaleString()}
