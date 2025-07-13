@@ -1,9 +1,9 @@
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { accountIdAtom } from "@/lib/atoms";
 import { api } from "@/trpc/react";
 import { useAtom } from "jotai";
 import React from "react";
 import Select, { type MultiValue } from "react-select";
-import Avatar from "react-avatar";
 
 interface Props {
   placeholder: string;
@@ -25,12 +25,12 @@ const TagInput = ({ placeholder, label, value, onChange }: Props) => {
       return {
         label: (
           <div className="flex items-center gap-2">
-            <Avatar
-              name={sugesstion.address}
-              textSizeRatio={2}
-              size="25"
-              round={true}
-            />
+            <Avatar>
+              <AvatarImage alt="avatar" />
+              <AvatarFallback className="bg-teal-700 text-white dark:text-zinc-200">
+                {sugesstion.address}
+              </AvatarFallback>
+            </Avatar>
             {sugesstion.address}
           </div>
         ),
