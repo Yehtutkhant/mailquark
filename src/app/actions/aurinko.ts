@@ -19,7 +19,6 @@ export async function getAurinkoAuthUrl(serviceType: "Google" | "Office365") {
 }
 
 export async function exchangeCodeforToken(code: string) {
-  console.log(code);
   try {
     const response = await axios.post(
       `https://api.aurinko.io/v1/auth/token/${code}`,

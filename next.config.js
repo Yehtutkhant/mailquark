@@ -1,7 +1,4 @@
-/**
- * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
- * for Docker builds.
- */
+import path from "path";
 import "./src/env.js";
 
 /** @type {import("next").NextConfig} */
@@ -11,6 +8,13 @@ const config = {
   },
   eslint: {
     ignoreDuringBuilds: true,
+  },
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // Ensure that all imports of 'yjs' resolve to the same instance
+      config.resolve.alias["yjs"] = path.resolve(__dirname, "node_modules/yjs");
+    }
+    return config;
   },
 };
 

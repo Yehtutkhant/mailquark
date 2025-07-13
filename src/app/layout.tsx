@@ -5,6 +5,9 @@ import { Geist } from "next/font/google";
 
 import { TRPCReactProvider } from "@/trpc/react";
 import { ClerkProvider } from "@clerk/nextjs";
+import { ThemeProvider } from "@/components/app/theme/theme-provider";
+import KBar from "@/components/app/kbar/KBar";
+import StoreWrapper from "@/components/app/store-wrapper";
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -25,7 +28,18 @@ export default function RootLayout({
       {" "}
       <html lang="en" className={`${geist.variable}`}>
         <body>
-          <TRPCReactProvider>{children}</TRPCReactProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <TRPCReactProvider>
+              <StoreWrapper>
+                <KBar>{children}</KBar>
+              </StoreWrapper>
+            </TRPCReactProvider>
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>

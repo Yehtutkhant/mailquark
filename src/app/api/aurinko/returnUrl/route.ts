@@ -36,8 +36,6 @@ export async function GET(req: NextRequest) {
         { status: 400 },
       );
 
-    console.log(token);
-
     const account = await getAurinkoLinkedAccount(token.accessToken);
     await db.account.upsert({
       where: {
