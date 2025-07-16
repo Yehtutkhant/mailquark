@@ -1,8 +1,11 @@
 import { db } from "@/server/db";
 import { createTRPCRouter, privateProcedure } from "../trpc";
 import { z } from "zod";
+
+import { emailAddressSchema } from "@/lib/types";
+import { Account } from "@/app/actions/account";
 import type { Prisma } from "@prisma/client";
-import { threadId } from "worker_threads";
+import { OramaClient } from "@/app/actions/orama";
 
 export const threadRouter = createTRPCRouter({
   getThreadsCount: privateProcedure
@@ -17,18 +20,25 @@ export const threadRouter = createTRPCRouter({
         input.accountId,
         ctx.auth.userId,
       );
-      const filters: Prisma.ThreadWhereInput = {};
+      let emailCondition: Prisma.EmailWhereInput;
       if (input.tab === "inbox") {
-        filters.inboxStatus = true;
+        emailCondition = {
+          NOT: [
+            { sysLabels: { has: "sent" } },
+            { sysLabels: { has: "draft" } },
+          ],
+        };
       } else if (input.tab === "draft") {
-        filters.draftStatus = true;
+        emailCondition = { sysLabels: { has: "draft" } };
       } else if (input.tab === "sent") {
-        filters.sentStatus = true;
+        emailCondition = { sysLabels: { has: "sent" } };
+      } else {
+        emailCondition = {};
       }
       return await ctx.db.thread.count({
         where: {
           accountId: account.id,
-          ...filters,
+          emails: { some: emailCondition },
         },
       });
     }),
@@ -45,24 +55,45 @@ export const threadRouter = createTRPCRouter({
         input.accountId,
         ctx.auth.userId,
       );
-      const filters: Prisma.ThreadWhereInput = {};
+      const acc = new Account(account.accessToken);
+      acc.syncUpdatedEmails().catch(console.error);
+
+      let emailCondition: Prisma.EmailWhereInput;
       if (input.tab === "inbox") {
-        filters.inboxStatus = true;
+        if (input.done) {
+          emailCondition = {
+            NOT: [
+              { sysLabels: { has: "unread" } },
+              { sysLabels: { has: "sent" } },
+              { sysLabels: { has: "draft" } },
+            ],
+          };
+        } else {
+          emailCondition = {
+            sysLabels: { has: "unread" },
+            NOT: [
+              { sysLabels: { has: "sent" } },
+              { sysLabels: { has: "draft" } },
+            ],
+          };
+        }
       } else if (input.tab === "draft") {
-        filters.draftStatus = true;
+        emailCondition = { sysLabels: { has: "draft" } };
       } else if (input.tab === "sent") {
-        filters.sentStatus = true;
+        emailCondition = { sysLabels: { has: "sent" } };
+      } else {
+        emailCondition = {};
       }
-      filters.done = {
-        equals: input.done,
-      };
+
       return await ctx.db.thread.findMany({
         where: {
           accountId: account.id,
-          ...filters,
+
+          emails: { some: emailCondition },
         },
         include: {
           emails: {
+            where: emailCondition,
             orderBy: {
               sentAt: "asc",
             },
@@ -119,6 +150,7 @@ export const threadRouter = createTRPCRouter({
       });
       if (!thread || thread.emails.length < 1)
         throw new Error("Thread not found");
+
       const lastExternalEmail = thread.emails
         .reverse()
         .find((email) => email.from.address !== account.emailAddress);
@@ -126,7 +158,7 @@ export const threadRouter = createTRPCRouter({
       return {
         id: lastExternalEmail.internetMessageId,
         subject: lastExternalEmail.subject,
-        from: { name: account.name, email: account.emailAddress },
+        from: { name: account.name, address: account.emailAddress },
         to: [
           lastExternalEmail.from,
           ...lastExternalEmail.to.filter(
@@ -138,6 +170,59 @@ export const threadRouter = createTRPCRouter({
         ),
         sentAt: lastExternalEmail.sentAt,
       };
+    }),
+
+  sendEmail: privateProcedure
+    .input(
+      z.object({
+        accountId: z.string(),
+        subject: z.string(),
+        body: z.string(),
+        from: emailAddressSchema,
+        to: z.array(emailAddressSchema),
+        cc: z.array(emailAddressSchema).optional(),
+        bcc: z.array(emailAddressSchema).optional(),
+        replyTo: emailAddressSchema,
+        inReplyTo: z.string().optional(),
+        threadId: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const account = await authorizeAccountAccess(
+        input.accountId,
+        ctx.auth.userId,
+      );
+
+      const acc = new Account(account.accessToken);
+      return await acc.sendEmail({
+        from: input.from,
+        subject: input.subject,
+        body: input.body,
+        to: input.to,
+        cc: input.cc,
+        bcc: input.bcc,
+        replyTo: input.replyTo,
+        inReplyTo: input.inReplyTo,
+        threadId: input.threadId,
+      });
+    }),
+
+  searchEmails: privateProcedure
+    .input(
+      z.object({
+        accountId: z.string(),
+        search: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const account = await authorizeAccountAccess(
+        input.accountId,
+        ctx.auth.userId,
+      );
+      const orama = new OramaClient(account.id);
+      await orama.initialize();
+      const results = await orama.searchIndex({ term: input.search });
+      return results;
     }),
 });
 

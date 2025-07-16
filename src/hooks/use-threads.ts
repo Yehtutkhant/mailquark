@@ -7,6 +7,7 @@ import { useAtom } from "jotai";
 
 const useThreads = () => {
   const [accountId] = useAtom(accountIdAtom);
+
   const [tab] = useAtom(tabAtom);
   const [done] = useAtom(doneAtom);
   const [threadId, setThreadId] = useAtom(threadIdAtom);
@@ -27,7 +28,7 @@ const useThreads = () => {
     {
       enabled: !!accountId && !!tab,
       placeholderData: keepPreviousData,
-      refetchInterval: 50000,
+      refetchInterval: 300000,
     },
   );
   return {

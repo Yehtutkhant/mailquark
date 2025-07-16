@@ -1,13 +1,38 @@
 import type { EmailAddress, EmailAttachment, EmailMessage } from "@/lib/types";
 import { db } from "@/server/db";
+import { OramaClient } from "./orama";
+import { turndown } from "@/lib/turndown";
 
 export async function syncToDb(emails: EmailMessage[], accountId: string) {
-  async function syncEmails() {
-    for (const [index, email] of emails.entries()) {
-      await upsertEmails(email, accountId, index);
+  try {
+    const orama = new OramaClient(accountId);
+    await orama.initialize();
+    async function syncEmails() {
+      for (const [index, email] of emails.entries()) {
+        await upsertEmails(email, accountId, index);
+      }
     }
+
+    async function storeIndex() {
+      for (const email of emails) {
+        await orama.insertToOrama({
+          subject: email.subject,
+          body: turndown.turndown(email.body ?? email.bodySnippet ?? ""),
+          rawBody: email.bodySnippet ?? "",
+          from: `${email.from.name} <${email.from.address}>`,
+          to: email.to.map((email) => `${email.name} <${email.address}>`),
+          sentAt: new Date(email.sentAt).toLocaleString(),
+          threadId: email.threadId,
+          accountId: accountId,
+        });
+      }
+    }
+
+    Promise.all([syncEmails(), storeIndex()]);
+  } catch (error) {
+    console.error("syncToDb Error: ", error);
+    throw error;
   }
-  syncEmails();
 }
 
 async function upsertEmails(

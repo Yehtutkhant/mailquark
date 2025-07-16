@@ -9,7 +9,7 @@ import {
 } from "../../../components/ui/resizable";
 import { cn } from "@/lib/utils";
 import { useAtom } from "jotai";
-import { doneAtom, isCollapsedAtom } from "@/lib/atoms";
+import { doneAtom, isCollapsedAtom, tabAtom } from "@/lib/atoms";
 import { Separator } from "../../../components/ui/separator";
 import {
   Tabs,
@@ -21,6 +21,10 @@ import AccountSwitcher from "./account-switcher";
 import Sidebar from "./side-bar";
 import ThreadList from "./thread-list";
 import ThreadDisplay from "./thread-display";
+import ThemeToggle from "../theme/theme-toggle";
+import { UserButton } from "@clerk/nextjs";
+import ComposeButton from "./compose-button";
+import SearchBar from "./search-bar";
 
 interface Props {
   defaultLayout: number[] | undefined;
@@ -30,6 +34,7 @@ const Mail = ({ defaultLayout = [20, 32, 48], navCollapsedSize }: Props) => {
   const [isCollapsed, setIsCollapsed] = useAtom(isCollapsedAtom);
 
   const [done, setDone] = useAtom(doneAtom);
+  const [tab] = useAtom(tabAtom);
   return (
     <TooltipProvider delayDuration={0}>
       <ResizablePanelGroup
@@ -67,8 +72,8 @@ const Mail = ({ defaultLayout = [20, 32, 48], navCollapsedSize }: Props) => {
           <div className="flex h-full flex-1 flex-col">
             <div
               className={cn(
-                "flex h-[52px] items-center justify-center",
-                isCollapsed ? "h-[52px] px-2" : "px-2",
+                "flex h-15 items-center justify-center",
+                isCollapsed ? "h-15 px-2" : "px-2",
               )}
             >
               <AccountSwitcher />
@@ -77,6 +82,18 @@ const Mail = ({ defaultLayout = [20, 32, 48], navCollapsedSize }: Props) => {
             <Sidebar />
             <div className="flex-1"></div>
             {/* <AskAI isCollapsed={isCollapsed} /> */}
+            <div className="mt-3">
+              <div
+                className={cn(
+                  "flex items-center gap-2 p-3",
+                  isCollapsed ? "flex-col-reverse" : "",
+                )}
+              >
+                <ThemeToggle />
+                <UserButton />
+                <ComposeButton isCollapsed={isCollapsed} />
+              </div>
+            </div>
           </div>
         </ResizablePanel>
         <ResizableHandle withHandle />
@@ -93,25 +110,27 @@ const Mail = ({ defaultLayout = [20, 32, 48], navCollapsedSize }: Props) => {
               }
             }}
           >
-            <div className="flex items-center px-4 py-2">
+            <div className="flex h-15 items-center px-4 py-2">
               <h1 className="text-xl font-bold">Inbox</h1>
-              <TabsList className="ml-auto">
-                <TabsTrigger
-                  value="inbox"
-                  className="text-zinc-600 dark:text-zinc-200"
-                >
-                  Inbox
-                </TabsTrigger>
-                <TabsTrigger
-                  value="done"
-                  className="text-zinc-600 dark:text-zinc-200"
-                >
-                  Done
-                </TabsTrigger>
-              </TabsList>
+              {tab === "inbox" && (
+                <TabsList className="ml-auto">
+                  <TabsTrigger
+                    value="inbox"
+                    className="text-zinc-600 dark:text-zinc-200"
+                  >
+                    Inbox
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="done"
+                    className="text-zinc-600 dark:text-zinc-200"
+                  >
+                    Done
+                  </TabsTrigger>
+                </TabsList>
+              )}
             </div>
             <Separator />
-            {/* <SearchBar /> */}
+            <SearchBar />
             <TabsContent value="inbox" className="m-0">
               <ThreadList />
             </TabsContent>

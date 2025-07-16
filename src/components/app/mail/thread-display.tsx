@@ -12,11 +12,14 @@ import { Archive, MailMinusIcon } from "lucide-react";
 import React from "react";
 import EmailDisplay from "./email-display";
 import ReplyBox from "./reply-box";
+import { useAtom } from "jotai";
+import { isSearchingAtom } from "@/lib/atoms";
+import SearchDisplay from "./search-display";
 
 const ThreadDisplay = () => {
-  const { threads, isPending, isError, threadId } = useThreads();
-
-  if (isPending) {
+  const { threads, isPending, isError, threadId, isFetching } = useThreads();
+  const [isSearching] = useAtom(isSearchingAtom);
+  if (isFetching && isPending) {
     return (
       <div className="flex h-full w-full items-center justify-center pt-20">
         <svg
@@ -50,7 +53,7 @@ const ThreadDisplay = () => {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between px-4 py-2">
+      <div className="flex h-15 items-center justify-between px-4 py-2">
         <h1 className="text-xl font-bold">Mail Box</h1>
         <div className="flex items-center justify-end gap-2">
           {" "}
@@ -87,57 +90,64 @@ const ThreadDisplay = () => {
         </div>
       </div>
       <Separator />
-      {thread ? (
-        <div className="hide-scrollbar flex flex-1 flex-col overflow-scroll">
-          <div className="flex items-center justify-between p-4">
-            <div className="flex items-center gap-4 text-sm">
-              <Avatar>
-                <AvatarImage alt="avatar" />
-                <AvatarFallback>
-                  {thread.emails[0]?.from.name
-                    ? thread.emails[0]?.from.name
-                        .split(" ")
-                        .map((name) => name[0])
-                        .join("")
-                    : "PP"}
-                </AvatarFallback>
-              </Avatar>
-              <div className="grid gap-1">
-                <div className="font-semibold">
-                  {thread.emails[0]?.from.name ??
-                    thread.emails[0]?.from.address}
-                </div>
-                <div className="line-clamp-1 text-xs">
-                  {thread.emails[0]?.subject}
-                </div>
-                <div className="line-clamp-1 text-xs">
-                  <span className="font-medium"> Reply to: </span>
-                  {thread.emails[0]?.from.address}
-                </div>
-              </div>
-            </div>
-            {thread.emails[0]?.sentAt && (
-              <div className="text-muted-foreground text-xs">
-                {format(new Date(thread.emails[0].sentAt), "PPpp")}
-              </div>
-            )}
-          </div>
-          <Separator />
-          <div className="hide-scrollbar flex max-h-[calc(100vh-500px)] flex-col overflow-scroll">
-            <div className="flex flex-col gap-4 p-4">
-              {thread.emails.map((email) => {
-                return <EmailDisplay key={email.id} email={email} />;
-              })}
-            </div>
-          </div>
-          <div className="flex-1"></div>
-          <Separator className="mt-auto" />
-          <ReplyBox />
-        </div>
+      {isSearching ? (
+        <SearchDisplay />
       ) : (
-        <div className="text-muted-foreground pt-8 text-center text-xs font-semibold">
-          No email selected
-        </div>
+        <>
+          {" "}
+          {thread ? (
+            <div className="hide-scrollbar flex flex-1 flex-col overflow-scroll">
+              <div className="flex items-center justify-between p-4">
+                <div className="flex items-center gap-4 text-sm">
+                  <Avatar>
+                    <AvatarImage alt="avatar" />
+                    <AvatarFallback>
+                      {thread.emails[0]?.from.name
+                        ? thread.emails[0]?.from.name
+                            .split(" ")
+                            .map((name) => name[0])
+                            .join("")
+                        : "PP"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="grid gap-1">
+                    <div className="font-semibold">
+                      {thread.emails[0]?.from.name ??
+                        thread.emails[0]?.from.address}
+                    </div>
+                    <div className="line-clamp-1 text-xs">
+                      {thread.emails[0]?.subject}
+                    </div>
+                    <div className="line-clamp-1 text-xs">
+                      <span className="font-medium"> Reply to: </span>
+                      {thread.emails[0]?.from.address}
+                    </div>
+                  </div>
+                </div>
+                {thread.emails[0]?.sentAt && (
+                  <div className="text-muted-foreground text-xs">
+                    {format(new Date(thread.emails[0].sentAt), "PPpp")}
+                  </div>
+                )}
+              </div>
+              <Separator />
+              <div className="hide-scrollbar flex max-h-[calc(100vh-530px)] flex-col overflow-scroll">
+                <div className="flex flex-col gap-4 p-4">
+                  {thread.emails.map((email) => {
+                    return <EmailDisplay key={email.id} email={email} />;
+                  })}
+                </div>
+              </div>
+              <div className="flex-1"></div>
+              <Separator className="mt-auto" />
+              <ReplyBox />
+            </div>
+          ) : (
+            <div className="text-muted-foreground pt-8 text-center text-xs font-semibold">
+              No email selected
+            </div>
+          )}
+        </>
       )}
     </div>
   );

@@ -9,6 +9,7 @@ interface Props {
   placeholder: string;
   label: string;
   value: { label: string; value: string }[];
+
   onChange: (values: { label: string; value: string }[]) => void;
 }
 const TagInput = ({ placeholder, label, value, onChange }: Props) => {
@@ -27,8 +28,11 @@ const TagInput = ({ placeholder, label, value, onChange }: Props) => {
           <div className="flex items-center gap-2">
             <Avatar>
               <AvatarImage alt="avatar" />
-              <AvatarFallback className="bg-teal-700 text-white dark:text-zinc-200">
-                {sugesstion.address}
+              <AvatarFallback className="bg-teal-700 p-2 text-white dark:text-zinc-200">
+                {sugesstion.address
+                  .split(" ")
+                  .map((s) => s[0])
+                  .join(" ")}
               </AvatarFallback>
             </Avatar>
             {sugesstion.address}
@@ -47,6 +51,25 @@ const TagInput = ({ placeholder, label, value, onChange }: Props) => {
         //@ts-ignore
         onChange={onChange}
         values={value}
+        defaultValue={value.map((v) => {
+          return {
+            label: (
+              <div className="flex items-center gap-2">
+                <Avatar>
+                  <AvatarImage alt="avatar" />
+                  <AvatarFallback className="bg-teal-700 p-2 text-white dark:text-zinc-200">
+                    {v.value
+                      .split(" ")
+                      .map((s) => s[0])
+                      .join(" ")}
+                  </AvatarFallback>
+                </Avatar>
+                {v.value}
+              </div>
+            ),
+            value: v.value,
+          };
+        })}
         //@ts-ignore
         options={
           inputValue

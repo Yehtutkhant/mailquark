@@ -9,8 +9,8 @@ export async function generateEmail(context: string, prompt: string) {
     const stream = createStreamableValue<string>("");
     (async () => {
       const { textStream } = await streamText({
-        model: openai("gpt"),
-        prompt: ` You are an AI email assistant embedded in an email client app. Your purpose is to help the user compose emails by providing suggestions and relevant information based on the context of their previous emails.
+        model: openai("gpt-4o-mini"),
+        prompt: `You are an AI email assistant embedded in an email client app. Your purpose is to help the user compose emails by providing suggestions and relevant information based on the context of their previous emails.
             
             THE TIME NOW IS ${new Date().toLocaleString()}
             
@@ -31,6 +31,44 @@ export async function generateEmail(context: string, prompt: string) {
             - Don't add fluff like 'Heres your email' or 'Here's your email' or anything like that.
             - Directly output the email, no need to say 'Here is your email' or anything like that.
             - No need to output subject`,
+      });
+      for await (const token of textStream) {
+        stream.update(token);
+      }
+      stream.done();
+    })();
+    return { output: stream.value };
+  } catch (error) {
+    console.error("Unexpected error open ai :", error);
+    throw error;
+  }
+}
+
+export async function autoCompleteEmail(input: string) {
+  try {
+    const stream = createStreamableValue<string>("");
+    (async () => {
+      const { textStream } = await streamText({
+        model: openai("gpt-4o-mini"),
+        prompt: `
+            ALWAYS RESPOND IN PLAIN TEXT, no html or markdown.
+            You are a helpful AI embedded in a email client app that is used to autocomplete sentences, similar to google gmail autocomplete
+            The traits of AI include expert knowledge, helpfulness, cleverness, and articulateness.
+            AI is a well-behaved and well-mannered individual.
+            AI is always friendly, kind, and inspiring, and he is eager to provide vivid and thoughtful responses to the user.
+            I am writing a piece of text in a notion text editor app.
+            Help me complete my train of thought here: <input>${input}</input>
+            keep the tone of the text consistent with the rest of the text.
+            keep the response short and sweet. Act like a copilot, finish my sentence if need be, but don't try to generate a whole new paragraph.
+            Do not add fluff like "I'm here to help you" or "I'm a helpful AI" or anything like that.
+
+            Example:
+            Dear Alice, I'm sorry to hear that you are feeling down.
+
+            Output: Unfortunately, I can't help you with that.
+
+            Your output is directly concatenated to the input, so do not add any new lines or formatting, just plain text.
+            `,
       });
       for await (const token of textStream) {
         stream.update(token);

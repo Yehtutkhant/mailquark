@@ -11,6 +11,8 @@ import { motion } from "framer-motion";
 import TagInput from "./tag-input";
 import { Input } from "@/components/ui/input";
 import AIComposeButton from "./ai-compose-button";
+import { readStreamableValue } from "ai/rsc";
+import { autoCompleteEmail } from "@/app/actions/open-ai";
 
 interface Props {
   subject: string;
@@ -37,11 +39,16 @@ const EmailEditor = ({
   isSending,
 }: Props) => {
   const [value, setValue] = React.useState<string>("");
+  const [token, setToken] = React.useState<string>("");
   const [expanded, setExpanded] = React.useState<boolean>(defaultExpanded);
+
   const CustomText = Text.extend({
     addKeyboardShortcuts() {
       return {
-        "Meta-j": () => {},
+        "Meta-j": () => {
+          autoComplete(this.editor?.getText());
+          return true;
+        },
       };
     },
   });
@@ -49,17 +56,36 @@ const EmailEditor = ({
   const editor = useEditor({
     immediatelyRender: false,
     autofocus: false,
-    extensions: [Starterkit, CustomText],
+    extensions: [
+      Starterkit.configure({
+        text: false,
+      }),
+
+      CustomText,
+    ],
     onUpdate: () => {
-      if (editor) setValue(editor.getHTML());
+      if (editor) {
+        setValue(editor.getHTML());
+      }
     },
   });
+
+  const autoComplete = async (input: string) => {
+    const { output } = await autoCompleteEmail(input);
+    for await (const token of readStreamableValue(output)) {
+      setToken(token ?? "");
+    }
+  };
 
   const onGenerate = (token: string) => {
     editor?.commands.insertContent(token);
   };
+
+  React.useEffect(() => {
+    editor?.commands.insertContent(token);
+  }, [token, editor]);
   return (
-    <div>
+    <div className="w-full">
       <div className="flex border-b p-4 py-2">
         {editor && <EditorMenuBar editor={editor} />}
       </div>
@@ -102,13 +128,18 @@ const EmailEditor = ({
             <span>to {to.join(", ")}</span>
           </div>
           <AIComposeButton
+            editor={editor}
             isComposing={defaultExpanded}
             onGenerate={onGenerate}
           />
         </div>
       </div>
-      <div className="prose w-full px-4">
-        <EditorContent editor={editor} value={value} />
+      <div className="prose h-[100px] w-full max-w-none overflow-y-auto px-4">
+        <EditorContent
+          editor={editor}
+          value={value}
+          className="dark:text-gray-200"
+        />
       </div>
       <Separator />
       <div className="flex items-center justify-between px-4 py-3">
@@ -123,7 +154,7 @@ const EmailEditor = ({
           disabled={isSending}
           onClick={async () => {
             editor?.commands.clearContent();
-            await handleSend(value);
+            handleSend(value);
           }}
         >
           Send

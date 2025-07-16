@@ -53,7 +53,7 @@ const AccountSwitcher = () => {
           );
         })}
         <div
-          className="focus:bg-accent focus:text-accent-foreground relative flex w-full cursor-pointer items-center rounded-sm py-1.5 pr-8 pl-2 text-sm outline-none hover:bg-gray-50 data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+          className="focus:bg-accent focus:text-accent-foreground relative flex w-full cursor-pointer items-center rounded-sm py-1.5 pr-8 pl-2 text-sm outline-none hover:bg-gray-50 hover:text-gray-600 data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
           onClick={async () => {
             try {
               const url = await getAurinkoAuthUrl("Google");

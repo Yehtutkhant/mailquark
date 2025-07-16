@@ -8,6 +8,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/app/theme/theme-provider";
 import KBar from "@/components/app/kbar/KBar";
 import StoreWrapper from "@/components/app/store-wrapper";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -37,6 +38,7 @@ export default function RootLayout({
             <TRPCReactProvider>
               <StoreWrapper>
                 <KBar>{children}</KBar>
+                <Toaster richColors />
               </StoreWrapper>
             </TRPCReactProvider>
           </ThemeProvider>

@@ -8,7 +8,8 @@ import DOMPurify from "dompurify";
 import React, { type ComponentProps } from "react";
 
 const ThreadList = () => {
-  const { threads, threadId, setThreadId, isPending, isError } = useThreads();
+  const { threads, threadId, setThreadId, isFetching, isPending, isError } =
+    useThreads();
   const groupedThreads = threads?.reduce(
     (acc, thread) => {
       const date = format(
@@ -24,10 +25,10 @@ const ThreadList = () => {
     {} as Record<string, typeof threads>,
   );
 
-  if (isPending) {
+  if (isFetching && isPending) {
     return (
       <div className="flex min-h-full max-w-full flex-col gap-4 p-4">
-        {Array.from({ length: 3 }).map((_, idx) => (
+        {Array.from({ length: 4 }).map((_, idx) => (
           <Skeleton className="h-[150px] w-full" key={idx} />
         ))}
       </div>
@@ -42,7 +43,7 @@ const ThreadList = () => {
     );
   }
 
-  if (threads && threads.length < 1) {
+  if (!threads || threads.length < 1) {
     return (
       <div className="text-muted-foreground flex min-h-full max-w-full justify-center pt-8 text-xs font-semibold">
         No emails to show
@@ -52,7 +53,7 @@ const ThreadList = () => {
 
   return (
     <ScrollArea>
-      <div className="hide-scrollbar max-h-[calc(100vh-80px)] max-w-full overflow-y-scroll">
+      <div className="hide-scrollbar mt-3 max-h-[calc(100vh-150px)] max-w-full overflow-y-scroll">
         <div className="flex flex-col gap-4 p-4 pt-0">
           {Object.entries(groupedThreads ?? {}).map(([date, threads]) => {
             return (
