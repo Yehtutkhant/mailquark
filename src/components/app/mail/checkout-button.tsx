@@ -1,11 +1,20 @@
-import { createCheckoutSession } from "@/app/actions/stripe-action";
+import {
+  createBillingPortalSession,
+  createCheckoutSession,
+} from "@/app/actions/stripe-action";
 import { Button } from "@/components/ui/button";
+import { isSubscribedAtom } from "@/lib/atoms";
+import { useAtom } from "jotai";
 import React from "react";
 
 const CheckoutButton = () => {
-  const isSub = false;
+  const [isSubScribed] = useAtom(isSubscribedAtom);
   const handleCheckout = async () => {
-    await createCheckoutSession();
+    if (!isSubScribed) {
+      await createCheckoutSession();
+    } else {
+      await createBillingPortalSession();
+    }
   };
   return (
     <div>
@@ -15,7 +24,7 @@ const CheckoutButton = () => {
         onClick={handleCheckout}
         className="cursor-pointer hover:opacity-85"
       >
-        {isSub ? "Manage Subscription" : "Upgrade Plan"}
+        {isSubScribed ? "Manage Plan" : "Upgrade Plan"}
       </Button>
     </div>
   );

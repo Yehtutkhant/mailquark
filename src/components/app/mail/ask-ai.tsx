@@ -6,10 +6,13 @@ import { cn } from "@/lib/utils";
 import { Ellipsis, Send, SparklesIcon } from "lucide-react";
 import { useChat } from "ai/react";
 import PremiumBanner from "./premium-banner";
+import { toast } from "sonner";
+import { api } from "@/trpc/react";
 
 const AskAI = () => {
   const [isCollapsed] = useAtom(isCollapsedAtom);
   const [accountId] = useAtom(accountIdAtom);
+  const utils = api.useUtils();
   const { input, handleInputChange, handleSubmit, messages, isLoading } =
     useChat({
       api: "/api/chat",
@@ -17,7 +20,10 @@ const AskAI = () => {
         accountId,
       },
       onError: (error) => {
-        console.log(error);
+        toast.error(error.message);
+      },
+      onFinish: () => {
+        utils.account.getRemainingChatbotCredits.refetch();
       },
       initialMessages: [],
     });
@@ -36,7 +42,7 @@ const AskAI = () => {
       <PremiumBanner />
       <motion.div className="flex w-full flex-1 flex-col items-end rounded-lg bg-gray-100 p-4 shadow-inner dark:bg-gray-900">
         <div
-          className="hide-scrollbar flex max-h-[50vh] w-full flex-col gap-2 overflow-y-scroll"
+          className="hide-scrollbar flex max-h-[30vh] w-full flex-col gap-2 overflow-y-scroll"
           id="message-container"
         >
           <AnimatePresence mode="wait">
@@ -138,7 +144,7 @@ const AskAI = () => {
             <motion.div
               key={messages.length}
               layout="position"
-              className="pointer-events-none absolute z-10 flex h-9 items-center overflow-hidden rounded-full bg-gray-200 break-words [word-break:break-word] dark:bg-gray-800"
+              className="pointer-events-none absolute flex h-9 items-center overflow-hidden rounded-full bg-gray-200 break-words [word-break:break-word] dark:bg-gray-800"
               layoutId={`container-[${messages.length - 1}]`}
               transition={{
                 type: "spring",

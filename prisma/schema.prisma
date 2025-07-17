@@ -17,7 +17,8 @@ model User {
     lastName           String
     imageUrl           String?
     accounts           Account[]
-    StripeSubscription StripeSubscription?
+    stripeSubscription StripeSubscription?
+    chatbotInteraction ChatbotInteraction?
 }
 
 model StripeSubscription {
@@ -30,6 +31,17 @@ model StripeSubscription {
     currentPeriodEnd DateTime
     createdAt        DateTime @default(now())
     updatedAt        DateTime @updatedAt
+}
+
+model ChatbotInteraction {
+    id     String @id @default(cuid())
+    day    String
+    count  Int    @default(1)
+    userId String @unique
+    user   User   @relation(fields: [userId], references: [id])
+
+    @@unique([day, userId])
+    @@index([day, userId])
 }
 
 model Account {

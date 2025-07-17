@@ -9,7 +9,13 @@ import {
 } from "../../../components/ui/resizable";
 import { cn } from "@/lib/utils";
 import { useAtom } from "jotai";
-import { doneAtom, isCollapsedAtom, tabAtom } from "@/lib/atoms";
+import {
+  accountIdAtom,
+  doneAtom,
+  isCollapsedAtom,
+  isSubscribedAtom,
+  tabAtom,
+} from "@/lib/atoms";
 import { Separator } from "../../../components/ui/separator";
 import {
   Tabs,
@@ -26,8 +32,7 @@ import { UserButton } from "@clerk/nextjs";
 import ComposeButton from "./compose-button";
 import SearchBar from "./search-bar";
 import AskAI from "./ask-ai";
-import { Button } from "@/components/ui/button";
-import { Rocket } from "lucide-react";
+import { getSubscriptionStatus } from "@/app/actions/stripe-action";
 
 interface Props {
   defaultLayout: number[] | undefined;
@@ -35,10 +40,18 @@ interface Props {
 }
 const Mail = ({ defaultLayout = [20, 32, 48], navCollapsedSize }: Props) => {
   const [isCollapsed, setIsCollapsed] = useAtom(isCollapsedAtom);
-
+  const [accountId] = useAtom(accountIdAtom);
+  const [_, setIsSubscribed] = useAtom(isSubscribedAtom);
   const [done, setDone] = useAtom(doneAtom);
   const [tab] = useAtom(tabAtom);
   const panelRef = React.useRef(null);
+
+  React.useEffect(() => {
+    (async () => {
+      const status = await getSubscriptionStatus();
+      setIsSubscribed(status);
+    })();
+  }, []);
   return (
     <TooltipProvider delayDuration={0}>
       <ResizablePanelGroup
@@ -86,8 +99,7 @@ const Mail = ({ defaultLayout = [20, 32, 48], navCollapsedSize }: Props) => {
             <Separator />
             <Sidebar />
             <div className="flex-1"></div>
-
-            <AskAI />
+            {(accountId !== "" || !accountId) && <AskAI />}
 
             <div>
               <div
@@ -98,7 +110,9 @@ const Mail = ({ defaultLayout = [20, 32, 48], navCollapsedSize }: Props) => {
               >
                 <ThemeToggle />
                 <UserButton />
-                <ComposeButton isCollapsed={isCollapsed} />
+                {(accountId !== "" || !accountId) && (
+                  <ComposeButton isCollapsed={isCollapsed} />
+                )}
               </div>
             </div>
           </div>

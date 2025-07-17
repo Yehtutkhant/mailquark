@@ -23,7 +23,7 @@ export async function POST(req: Request) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
-
+    console.log(session.subscription);
     const subscription = await stripe.subscriptions.retrieve(
       session.subscription as string,
       {
@@ -63,10 +63,10 @@ export async function POST(req: Request) {
   }
 
   if (event.type === "invoice.payment_succeeded") {
-    const session = event.data.object as Stripe.Invoice;
-    console.log(session.parent?.subscription_details?.subscription);
+    const invoice = event.data.object as Stripe.Invoice;
+    console.log(invoice.parent?.subscription_details?.subscription);
     const subscription = await stripe.subscriptions.retrieve(
-      session.parent?.subscription_details?.subscription as string,
+      invoice.parent?.subscription_details?.subscription as string,
       {
         expand: ["items.data.price.product"],
       },
@@ -87,13 +87,20 @@ export async function POST(req: Request) {
       return new Response("No current_period_end found", { status: 400 });
     }
 
+    const existingSubscription = await db.stripeSubscription.findUnique({
+      where: {
+        subscriptionId: subscription.id as string,
+      },
+    });
+    if (!existingSubscription) {
+      return new Response("No subscription created yet", { status: 200 });
+    }
     await db.stripeSubscription.update({
       where: {
         subscriptionId: subscription.id,
       },
       data: {
         priceId: plan.id,
-
         currentPeriodEnd: new Date(item.current_period_end * 1000),
       },
     });
@@ -107,6 +114,15 @@ export async function POST(req: Request) {
     const item = updatedSub.items.data[0];
     if (!item?.current_period_end) {
       return new Response("No current_period_end found", { status: 400 });
+    }
+
+    const existingSubscription = await db.stripeSubscription.findUnique({
+      where: {
+        subscriptionId: updatedSub.id as string,
+      },
+    });
+    if (!existingSubscription) {
+      return new Response("No subscription created yet", { status: 200 });
     }
 
     await db.stripeSubscription.update({

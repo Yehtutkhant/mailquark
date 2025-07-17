@@ -22,6 +22,7 @@ interface Props {
 const ComposeButton = ({ isCollapsed }: Props) => {
   const [open, setOpen] = React.useState(false);
   const { account } = useThreads();
+  const utils = api.useUtils();
 
   const [toValues, setToValues] = React.useState<
     { label: string; value: string }[]
@@ -53,6 +54,8 @@ const ComposeButton = ({ isCollapsed }: Props) => {
         onSuccess: () => {
           toast.success("Email Sent 🚀");
           setOpen(false);
+          utils.thread.getThreads.refetch();
+          utils.thread.getThreadsCount.refetch();
         },
         onError: (error) => {
           console.log(error);

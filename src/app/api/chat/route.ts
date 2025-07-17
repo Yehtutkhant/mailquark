@@ -4,6 +4,9 @@ import { type Message, OpenAIStream, StreamingTextResponse } from "ai";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { OramaClient } from "@/app/actions/orama";
+import { getSubscriptionStatus } from "@/app/actions/stripe-action";
+import { db } from "@/server/db";
+import { FREE_CREDITS_PER_DAY } from "@/lib/constants";
 
 const config = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -16,11 +19,38 @@ export async function POST(req: Request) {
     const { userId } = await auth();
     if (!userId)
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+
+    const today = new Date().toDateString();
+    const isSubscribed = await getSubscriptionStatus();
+
+    if (!isSubscribed) {
+      const chatbotInteraction = await db.chatbotInteraction.findUnique({
+        where: {
+          day: today,
+          userId,
+        },
+      });
+
+      if (!chatbotInteraction) {
+        await db.chatbotInteraction.create({
+          data: {
+            userId,
+            count: 0,
+            day: today,
+          },
+        });
+      } else if (chatbotInteraction.count > FREE_CREDITS_PER_DAY) {
+        return NextResponse.json(
+          { message: "You have exceeded free credits limit for tdoay" },
+          { status: 429 },
+        );
+      }
+    }
     const { accountId, messages } = await req.json();
     const orama = new OramaClient(accountId);
     await orama.initialize();
     const lastMessage = messages[messages.length - 1];
-    console.log(lastMessage);
+
     const context = await orama.searchVector({ term: lastMessage.content });
     console.log(context.hits.length + "hits found");
     const prompt = {
@@ -51,10 +81,20 @@ export async function POST(req: Request) {
 
     const stream = OpenAIStream(response, {
       onStart: async () => {
-        console.log("steam started");
+        console.log("stream started");
       },
-      onCompletion: async (completion) => {
-        console.log("steam completed", completion);
+      onCompletion: async () => {
+        await db.chatbotInteraction.update({
+          where: {
+            userId,
+            day: today,
+          },
+          data: {
+            count: {
+              increment: 1,
+            },
+          },
+        });
       },
     });
 

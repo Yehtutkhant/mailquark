@@ -8,3 +8,4 @@ export const doneAtom = atom<boolean>(false);
 export const threadIdAtom = atom<string>("");
 export const searchValueAtom = atom<string>("");
 export const isSearchingAtom = atom<boolean>(false);
+export const isSubscribedAtom = atom<boolean>(false);
