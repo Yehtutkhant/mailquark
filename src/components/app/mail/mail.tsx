@@ -99,7 +99,7 @@ const Mail = ({ defaultLayout = [20, 32, 48], navCollapsedSize }: Props) => {
             <Separator />
             <Sidebar />
             <div className="flex-1"></div>
-            {(accountId !== "" || !accountId) && <AskAI />}
+            {accountId && <AskAI />}
 
             <div>
               <div
@@ -110,9 +110,7 @@ const Mail = ({ defaultLayout = [20, 32, 48], navCollapsedSize }: Props) => {
               >
                 <ThemeToggle />
                 <UserButton />
-                {(accountId !== "" || !accountId) && (
-                  <ComposeButton isCollapsed={isCollapsed} />
-                )}
+                {accountId && <ComposeButton isCollapsed={isCollapsed} />}
               </div>
             </div>
           </div>

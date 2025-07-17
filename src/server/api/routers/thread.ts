@@ -12,7 +12,7 @@ export const threadRouter = createTRPCRouter({
     .input(
       z.object({
         accountId: z.string(),
-        tab: z.enum(["inbox", "draft", "sent"]),
+        tab: z.enum(["inbox", "trash", "sent"]),
       }),
     )
     .query(async ({ ctx, input }) => {
@@ -26,10 +26,11 @@ export const threadRouter = createTRPCRouter({
           NOT: [
             { sysLabels: { has: "sent" } },
             { sysLabels: { has: "draft" } },
+            { sysLabels: { has: "trash" } },
           ],
         };
-      } else if (input.tab === "draft") {
-        emailCondition = { sysLabels: { has: "draft" } };
+      } else if (input.tab === "trash") {
+        emailCondition = { sysLabels: { has: "trash" } };
       } else if (input.tab === "sent") {
         emailCondition = { sysLabels: { has: "sent" } };
       } else {
@@ -46,7 +47,7 @@ export const threadRouter = createTRPCRouter({
     .input(
       z.object({
         accountId: z.string(),
-        tab: z.enum(["inbox", "draft", "sent"]),
+        tab: z.enum(["inbox", "trash", "sent"]),
         done: z.boolean(),
       }),
     )
@@ -66,6 +67,7 @@ export const threadRouter = createTRPCRouter({
               { sysLabels: { has: "unread" } },
               { sysLabels: { has: "sent" } },
               { sysLabels: { has: "draft" } },
+              { sysLabels: { has: "trash" } },
             ],
           };
         } else {
@@ -73,12 +75,13 @@ export const threadRouter = createTRPCRouter({
             sysLabels: { has: "unread" },
             NOT: [
               { sysLabels: { has: "sent" } },
+              { sysLabels: { has: "trash" } },
               { sysLabels: { has: "draft" } },
             ],
           };
         }
-      } else if (input.tab === "draft") {
-        emailCondition = { sysLabels: { has: "draft" } };
+      } else if (input.tab === "trash") {
+        emailCondition = { sysLabels: { has: "trash" } };
       } else if (input.tab === "sent") {
         emailCondition = { sysLabels: { has: "sent" } };
       } else {
@@ -204,6 +207,48 @@ export const threadRouter = createTRPCRouter({
         replyTo: input.replyTo,
         inReplyTo: input.inReplyTo,
         threadId: input.threadId,
+      });
+    }),
+
+  markAsRead: privateProcedure
+    .input(
+      z.object({
+        messageId: z.string().optional(),
+        accountId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!input.messageId) throw new Error("No messageId found");
+      const account = await authorizeAccountAccess(
+        input.accountId,
+        ctx.auth.userId,
+      );
+
+      const acc = new Account(account.accessToken);
+
+      return await acc.updateEmailStatus({
+        messageId: input.messageId,
+      });
+    }),
+
+  deleteEmail: privateProcedure
+    .input(
+      z.object({
+        messageId: z.string().optional(),
+        accountId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!input.messageId) throw new Error("No messageId found");
+      const account = await authorizeAccountAccess(
+        input.accountId,
+        ctx.auth.userId,
+      );
+
+      const acc = new Account(account.accessToken);
+
+      return await acc.deleteEmail({
+        messageId: input.messageId,
       });
     }),
 

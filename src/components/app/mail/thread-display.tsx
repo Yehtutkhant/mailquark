@@ -8,16 +8,22 @@ import {
 } from "@/components/ui/tooltip";
 import useThreads from "@/hooks/use-threads";
 import { format } from "date-fns";
-import { Archive, MailMinusIcon } from "lucide-react";
+import { MailMinusIcon, Trash, Loader2 } from "lucide-react";
 import React from "react";
 import EmailDisplay from "./email-display";
 import ReplyBox from "./reply-box";
 import { useAtom } from "jotai";
 import { isSearchingAtom } from "@/lib/atoms";
 import SearchDisplay from "./search-display";
+import { api } from "@/trpc/react";
+import { toast } from "sonner";
 
 const ThreadDisplay = () => {
-  const { threads, isPending, isError, threadId, isFetching } = useThreads();
+  const { threads, isPending, isError, threadId, accountId, isFetching } =
+    useThreads();
+  const utils = api.useUtils();
+  const markAsRead = api.thread.markAsRead.useMutation();
+  const deleteEmail = api.thread.deleteEmail.useMutation();
   const [isSearching] = useAtom(isSearchingAtom);
   if (isFetching && isPending) {
     return (
@@ -51,43 +57,95 @@ const ThreadDisplay = () => {
   }
   const thread = threads?.find((thread) => thread.id === threadId);
 
+  const handleMarkAsRead = () => {
+    markAsRead.mutate(
+      {
+        accountId,
+        messageId: thread?.id,
+      },
+      {
+        onSuccess: () => {
+          utils.thread.getThreads.invalidate();
+          utils.thread.getThreads.refetch();
+          toast.success("Mark as read 🚀");
+        },
+        onError: (error) => {
+          console.log(error);
+          toast.error("Email updating failed ⚠️");
+        },
+      },
+    );
+  };
+  const handleDeleteEmail = () => {
+    deleteEmail.mutate(
+      {
+        accountId,
+        messageId: thread?.id,
+      },
+      {
+        onSuccess: () => {
+          utils.thread.getThreads.invalidate();
+          utils.thread.getThreads.refetch();
+          toast.success("Email Deleted 🚀");
+        },
+        onError: (error) => {
+          console.log(error);
+          toast.error("Email delete failed ⚠️");
+        },
+      },
+    );
+  };
   return (
     <div className="flex h-full flex-col">
       <div className="flex h-15 items-center justify-between px-4 py-2">
         <h1 className="text-xl font-bold">Mail Box</h1>
-        <div className="flex items-center justify-end gap-2">
-          {" "}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                className="cursor-pointer"
-                variant="ghost"
-                size="icon"
-                disabled={isError || isPending}
-              >
-                <MailMinusIcon className="size-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Mark as read</p>
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                className="cursor-pointer"
-                size="icon"
-                disabled={isError || isPending}
-              >
-                <Archive className="size-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Archive</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
+        {thread && (
+          <div className="flex items-center justify-end gap-2">
+            {thread.emails[0]?.sysLabels.includes("unread") && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={handleMarkAsRead}
+                    className="cursor-pointer hover:bg-yellow-100 hover:text-yellow-500"
+                    variant="ghost"
+                    size="icon"
+                    disabled={isError || isPending || markAsRead.isPending}
+                  >
+                    {markAsRead.isPending ? (
+                      <Loader2 className="size-4 animate-spin text-gray-400" />
+                    ) : (
+                      <MailMinusIcon className="size-4" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Mark as read</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={handleDeleteEmail}
+                  variant="ghost"
+                  className="cursor-pointer hover:bg-red-100 hover:text-red-500"
+                  size="icon"
+                  disabled={isError || isPending || deleteEmail.isPending}
+                >
+                  {deleteEmail.isPending ? (
+                    <Loader2 className="size-4 animate-spin text-gray-400" />
+                  ) : (
+                    <Trash className="size-4" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Move to trash</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        )}
       </div>
       <Separator />
       {isSearching ? (

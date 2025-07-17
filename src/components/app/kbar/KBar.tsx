@@ -6,7 +6,6 @@ import {
   KBarPositioner,
   KBarProvider,
   KBarSearch,
-  Priority,
   type Action,
 } from "kbar";
 import RenderResult from "./render-result";
@@ -32,14 +31,13 @@ const KBar = ({ children }: { children: React.ReactNode }) => {
     },
     {
       id: "draftAction",
-      name: "Draft",
-      keywords: "draft",
-      priority: Priority.HIGH,
-      shortcut: ["g", "d"],
+      name: "Trash",
+      keywords: "trash",
+      shortcut: ["g", "t"],
       section: "Navigation",
-      subtitle: "View your drafts",
+      subtitle: "View your trash",
       perform: () => {
-        setTab("draft");
+        setTab("trash");
       },
     },
     {

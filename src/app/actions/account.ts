@@ -151,7 +151,60 @@ export class Account {
       throw error;
     }
   }
+  async updateEmailStatus({ messageId }: { messageId: string }) {
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/email/messages/${messageId}/status`,
+        {
+          unread: false,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+        },
+      );
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error(
+          "Error update email status to aurinko: ",
+          error.response?.data,
+        );
+      } else {
+        console.error(
+          "Unexpected error in update email status to aurinko: ",
+          error,
+        );
+      }
+      throw error;
+    }
+  }
 
+  async deleteEmail({ messageId }: { messageId: string }) {
+    try {
+      const response = await axios.delete(
+        `${API_BASE_URL}/email/messages/${messageId}`,
+
+        {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+        },
+      );
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error("Error delete email  to aurinko: ", error.response?.data);
+      } else {
+        console.error(
+          "Unexpected error in delete email status to aurinko: ",
+          error,
+        );
+      }
+      throw error;
+    }
+  }
   async syncUpdatedEmails() {
     console.log("syncing last emails");
     const account = await db.account.findFirst({

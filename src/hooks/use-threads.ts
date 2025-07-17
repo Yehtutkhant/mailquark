@@ -6,7 +6,7 @@ import { keepPreviousData } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 
 const useThreads = () => {
-  const [accountId] = useAtom(accountIdAtom);
+  const [accountId, setAccountId] = useAtom(accountIdAtom);
 
   const [tab] = useAtom(tabAtom);
   const [done] = useAtom(doneAtom);
@@ -28,7 +28,7 @@ const useThreads = () => {
     {
       enabled: !!accountId && !!tab,
       placeholderData: keepPreviousData,
-      refetchInterval: 300000,
+      refetchInterval: 5000,
     },
   );
   return {
@@ -38,6 +38,7 @@ const useThreads = () => {
     isFetching,
     refetch,
     accountId,
+    setAccountId,
     threadId,
     setThreadId,
     account: accounts?.find((acc) => acc.id === accountId),

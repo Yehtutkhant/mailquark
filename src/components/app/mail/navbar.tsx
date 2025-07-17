@@ -38,7 +38,7 @@ export function Navbar({ links }: NavProps) {
                 <span
                   onClick={() =>
                     setTab(
-                      link.title.toLowerCase() as "inbox" | "draft" | "sent",
+                      link.title.toLowerCase() as "inbox" | "trash" | "sent",
                     )
                   }
                   className={cn(
@@ -64,7 +64,7 @@ export function Navbar({ links }: NavProps) {
             <span
               key={index}
               onClick={() =>
-                setTab(link.title.toLowerCase() as "inbox" | "draft" | "sent")
+                setTab(link.title.toLowerCase() as "inbox" | "trash" | "sent")
               }
               className={cn(
                 buttonVariants({ variant: link.variant, size: "sm" }),

@@ -4,9 +4,9 @@ import { accountIdAtom, tabAtom } from "@/lib/atoms";
 import { useAtom } from "jotai";
 import React from "react";
 import { Navbar } from "./navbar";
-import { File, Inbox, Send } from "lucide-react";
+import { Trash, Inbox, Send } from "lucide-react";
 import { api } from "@/trpc/react";
-const refetchInterval = 500000;
+const refetchInterval = 5000;
 const Sidebar = () => {
   const [accountId] = useAtom(accountIdAtom);
   const [tab] = useAtom(tabAtom);
@@ -21,10 +21,10 @@ const Sidebar = () => {
       refetchInterval,
     },
   );
-  const { data: draftCount } = api.thread.getThreadsCount.useQuery(
+  const { data: trashCount } = api.thread.getThreadsCount.useQuery(
     {
       accountId,
-      tab: "draft",
+      tab: "trash",
     },
     {
       enabled: !!accountId && !!tab,
@@ -52,10 +52,10 @@ const Sidebar = () => {
             variant: tab === "inbox" ? "default" : "ghost",
           },
           {
-            title: "Draft",
-            label: draftCount?.toString(),
-            icon: File,
-            variant: tab === "draft" ? "default" : "ghost",
+            title: "Trash",
+            label: trashCount?.toString(),
+            icon: Trash,
+            variant: tab === "trash" ? "default" : "ghost",
           },
           {
             title: "Sent",

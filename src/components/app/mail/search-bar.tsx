@@ -7,8 +7,8 @@ import React from "react";
 
 const SearchBar = () => {
   const [searchValue, setSearchValue] = useAtom(searchValueAtom);
-  const [isSearching, setIsSearching] = useAtom(isSearchingAtom);
-  const { isFetching } = useThreads();
+  const [_, setIsSearching] = useAtom(isSearchingAtom);
+
   return (
     <div className="relative m-4">
       <Search className="text-muted-foreground absolute top-2.5 left-2 size-4" />
@@ -24,9 +24,6 @@ const SearchBar = () => {
         onChange={(e) => setSearchValue(e.target.value)}
       />
       <div className="absolute top-2.5 right-2 flex items-center gap-2">
-        {isFetching && (
-          <Loader2 className="size-4 animate-spin text-gray-400" />
-        )}
         <button
           className="cursor-pointer rounded-sm hover:bg-gray-400/20"
           onClick={() => {

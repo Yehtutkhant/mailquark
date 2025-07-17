@@ -3,7 +3,7 @@ import { atomWithStorage } from "jotai/utils";
 
 export const isCollapsedAtom = atom<boolean>(false);
 export const accountIdAtom = atomWithStorage<string>("accountId", "");
-export const tabAtom = atom<"inbox" | "draft" | "sent">("inbox");
+export const tabAtom = atom<"inbox" | "trash" | "sent">("inbox");
 export const doneAtom = atom<boolean>(false);
 export const threadIdAtom = atom<string>("");
 export const searchValueAtom = atom<string>("");
