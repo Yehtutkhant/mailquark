@@ -2,6 +2,7 @@ import type { EmailAddress, EmailAttachment, EmailMessage } from "@/lib/types";
 import { db } from "@/server/db";
 import { OramaClient } from "./orama";
 import { turndown } from "@/lib/turndown";
+import { getEmbeddings } from "./embedding";
 
 export async function syncToDb(emails: EmailMessage[], accountId: string) {
   try {
@@ -13,22 +14,25 @@ export async function syncToDb(emails: EmailMessage[], accountId: string) {
       }
     }
 
-    async function storeIndex() {
+    async function loadIndexes() {
       for (const email of emails) {
+        const body = turndown.turndown(email.body ?? email.bodySnippet ?? "");
+        const embeddings = await getEmbeddings(body);
         await orama.insertToOrama({
           subject: email.subject,
-          body: turndown.turndown(email.body ?? email.bodySnippet ?? ""),
+          body,
           rawBody: email.bodySnippet ?? "",
           from: `${email.from.name} <${email.from.address}>`,
           to: email.to.map((email) => `${email.name} <${email.address}>`),
           sentAt: new Date(email.sentAt).toLocaleString(),
           threadId: email.threadId,
           accountId: accountId,
+          embeddings,
         });
       }
     }
 
-    Promise.all([syncEmails(), storeIndex()]);
+    await Promise.all([syncEmails(), loadIndexes()]);
   } catch (error) {
     console.error("syncToDb Error: ", error);
     throw error;

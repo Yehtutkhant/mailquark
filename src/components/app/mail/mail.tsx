@@ -25,6 +25,9 @@ import ThemeToggle from "../theme/theme-toggle";
 import { UserButton } from "@clerk/nextjs";
 import ComposeButton from "./compose-button";
 import SearchBar from "./search-bar";
+import AskAI from "./ask-ai";
+import { Button } from "@/components/ui/button";
+import { Rocket } from "lucide-react";
 
 interface Props {
   defaultLayout: number[] | undefined;
@@ -35,9 +38,11 @@ const Mail = ({ defaultLayout = [20, 32, 48], navCollapsedSize }: Props) => {
 
   const [done, setDone] = useAtom(doneAtom);
   const [tab] = useAtom(tabAtom);
+  const panelRef = React.useRef(null);
   return (
     <TooltipProvider delayDuration={0}>
       <ResizablePanelGroup
+        ref={panelRef}
         direction="horizontal"
         onLayout={(sizes: number[]) => {
           // document.cookie = `react-resizable-panels:layout:mail=${JSON.stringify(
@@ -81,8 +86,10 @@ const Mail = ({ defaultLayout = [20, 32, 48], navCollapsedSize }: Props) => {
             <Separator />
             <Sidebar />
             <div className="flex-1"></div>
-            {/* <AskAI isCollapsed={isCollapsed} /> */}
-            <div className="mt-3">
+
+            <AskAI />
+
+            <div>
               <div
                 className={cn(
                   "flex items-center gap-2 p-3",

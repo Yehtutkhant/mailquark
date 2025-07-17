@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import AIComposeButton from "./ai-compose-button";
 import { readStreamableValue } from "ai/rsc";
 import { autoCompleteEmail } from "@/app/actions/open-ai";
+import { Ellipsis } from "lucide-react";
 
 interface Props {
   subject: string;
@@ -151,6 +152,7 @@ const EmailEditor = ({
           for AI autocomplete
         </span>
         <Button
+          className="flex items-center gap-2"
           disabled={isSending}
           onClick={async () => {
             editor?.commands.clearContent();
@@ -158,6 +160,14 @@ const EmailEditor = ({
           }}
         >
           Send
+          {isSending && (
+            <motion.div
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+            >
+              <Ellipsis className="size-4" />
+            </motion.div>
+          )}
         </Button>
       </div>
     </div>
