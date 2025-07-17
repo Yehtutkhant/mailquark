@@ -16,6 +16,7 @@ export async function POST(req: Request) {
       process.env.STRIPE_WEBHOOK_SECRET as string,
     );
   } catch (error) {
+    console.log(error);
     return new Response("Webhook Error", { status: 400 });
   }
 
@@ -23,7 +24,6 @@ export async function POST(req: Request) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
-    console.log(session.subscription);
     const subscription = await stripe.subscriptions.retrieve(
       session.subscription as string,
       {
@@ -31,21 +31,25 @@ export async function POST(req: Request) {
       },
     );
     if (!session.client_reference_id) {
+      console.log("No client_reference_id found from session completed");
       return new Response("No client_reference_id found", { status: 400 });
     }
 
     const plan = subscription.items.data[0]?.price;
     if (!plan) {
+      console.log("No plan found from session completed");
       return new Response("No plan found", { status: 400 });
     }
 
     const productId = (plan.product as Stripe.Product).id;
     if (!productId) {
+      console.log("No product found from session completed");
       return new Response("No product found", { status: 400 });
     }
 
     const item = subscription.items.data[0];
     if (!item?.current_period_end) {
+      console.log("No current_period_end found from session completed");
       return new Response("No current_period_end found", { status: 400 });
     }
 
@@ -64,7 +68,7 @@ export async function POST(req: Request) {
 
   if (event.type === "invoice.payment_succeeded") {
     const invoice = event.data.object as Stripe.Invoice;
-    console.log(invoice.parent?.subscription_details?.subscription);
+
     const subscription = await stripe.subscriptions.retrieve(
       invoice.parent?.subscription_details?.subscription as string,
       {
@@ -74,16 +78,19 @@ export async function POST(req: Request) {
 
     const plan = subscription.items.data[0]?.price;
     if (!plan) {
+      console.log("No plan found from payment_succeeded ");
       return new Response("No plan found", { status: 400 });
     }
 
     const productId = (plan.product as Stripe.Product).id;
     if (!productId) {
+      console.log("No product found from payment_succeeded ");
       return new Response("No product found", { status: 400 });
     }
 
     const item = subscription.items.data[0];
     if (!item?.current_period_end) {
+      console.log("No current_period_end found from payment_succeeded ");
       return new Response("No current_period_end found", { status: 400 });
     }
 
@@ -113,6 +120,8 @@ export async function POST(req: Request) {
 
     const item = updatedSub.items.data[0];
     if (!item?.current_period_end) {
+      console.log("No current_period_end found from updated ");
+
       return new Response("No current_period_end found", { status: 400 });
     }
 
