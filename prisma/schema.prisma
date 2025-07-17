@@ -24,8 +24,8 @@ model StripeSubscription {
     id               String   @id @default(cuid())
     userId           String   @unique
     user             User     @relation(fields: [userId], references: [id])
-    customerID       String
-    subscriptionId   String
+    customerId       String
+    subscriptionId   String   @unique
     priceId          String
     currentPeriodEnd DateTime
     createdAt        DateTime @default(now())
