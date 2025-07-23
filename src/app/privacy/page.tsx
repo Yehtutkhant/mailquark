@@ -15,8 +15,8 @@ const PrivacyPolicyPage = () => {
             Introduction
           </h3>
           <p className="mt-5 mb-10 text-justify leading-relaxed text-gray-600">
-            Normal Human (“Normal Human,” “we,” “us,” or “our”) we value your
-            privacy and are committed to protecting and processing your personal
+            Mailquark (“Mailquark,” “we,” “us,” or “our”) we value your privacy
+            and are committed to protecting and processing your personal
             information responsibly. This Privacy Statement describes how we
             collect, use, and share the personal information described in this
             Privacy Statement, as well as the rights and choices individuals
@@ -69,8 +69,7 @@ const PrivacyPolicyPage = () => {
             these technologies may be necessary to operate the website or
             service, to improve performance, to help us understand how our
             online services are used, or to determine the interests of our
-            users. We use advertising partners to provide and assist in the use
-            of such technologies on www.normalhuman.com and other sites.
+            users.
           </p>
           <h3 className="mb-5 text-left text-2xl font-semibold text-gray-600">
             Children
@@ -96,7 +95,7 @@ const PrivacyPolicyPage = () => {
           </h3>
           <p className="mt-5 mb-10 text-justify leading-relaxed text-gray-600">
             We may share your personal information internally and externally
-            with suppliers, advisors, or Business Partners for Normal Human’s
+            with suppliers, advisors, or Business Partners for Mailquark’s
             legitimate business purposes, and only on a need-to-know basis. When
             sharing personal information, we implement appropriate checks and
             controls to confirm that the information can be shared in accordance
@@ -130,8 +129,8 @@ const PrivacyPolicyPage = () => {
           </h3>
           <p className="mt-5 mb-10 text-justify leading-relaxed text-gray-600">
             You have certain rights when it comes to the handling of your
-            personal information. By emailing us at support@normal-human.com,
-            you can:
+            personal information. By emailing us at support@mailquark.com, you
+            can:
           </p>
           <ul className="mt-5 mb-10 list-inside list-disc text-justify leading-relaxed text-gray-600">
             <li>
@@ -153,8 +152,8 @@ const PrivacyPolicyPage = () => {
               practices.
             </li>
             <li>
-              submit a complaint to Normal Human if you are not satisfied with
-              how we are processing your personal information.
+              submit a complaint to Mailquark if you are not satisfied with how
+              we are processing your personal information.
             </li>
           </ul>
           <h3 className="mb-5 text-left text-2xl font-semibold text-gray-600">
