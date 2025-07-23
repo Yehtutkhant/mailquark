@@ -59,7 +59,7 @@ const AccountSwitcher = () => {
               const url = await getAurinkoAuthUrl("Google");
               window.location.href = url;
             } catch (error) {
-              toast.error((error as Error).message);
+              toast.error("You have reached the maxmium accounts for you plan");
             }
           }}
         >
